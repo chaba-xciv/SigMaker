@@ -83,7 +83,7 @@ export default function App() {
 
   return (
     <div className={theme === 'dark' ? 'dark' : ''}>
-      <div className="min-h-[100dvh] lg:h-[100dvh] w-full flex flex-col bg-slate-50 dark:bg-[#0a0a0c] text-slate-900 dark:text-zinc-100 font-sans selection:bg-emerald-500/30 transition-colors duration-300 overflow-y-auto lg:overflow-hidden relative">
+      <div className="min-h-screen w-full flex flex-col bg-slate-50 dark:bg-[#0a0a0c] text-slate-900 dark:text-zinc-100 font-sans selection:bg-emerald-500/30 transition-colors duration-300 relative">
         
         {/* Background Decor */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-20 z-0">
@@ -93,64 +93,66 @@ export default function App() {
 
         {/* Compact Navbar (Always at top) */}
         <header className="flex-none p-4 lg:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-md z-20 shadow-sm">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                Forum <span className="text-emerald-500 dark:text-emerald-400 font-mono italic">Sig</span>Maker
-              </h1>
-              <div className="hidden sm:flex items-center px-2 py-0.5 bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-full">
-                <span className="text-[9px] uppercase font-mono tracking-widest text-emerald-600 dark:text-emerald-400">V1.0</span>
+          <div className="max-w-[1400px] w-full mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                  Forum <span className="text-emerald-500 dark:text-emerald-400 font-mono italic">Sig</span>Maker
+                </h1>
+                <div className="hidden sm:flex items-center px-2 py-0.5 bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-full">
+                  <span className="text-[9px] uppercase font-mono tracking-widest text-emerald-600 dark:text-emerald-400">V1.0</span>
+                </div>
               </div>
+              <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">Server-side dynamically generated signatures for strict forums.</p>
             </div>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">Server-side dynamically generated signatures for strict forums.</p>
-          </div>
 
-          <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
-            {/* Tab Switcher inside Header */}
-            <div className="flex p-0.5 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg overflow-hidden shadow-inner flex-1 sm:flex-none">
-              <button
-                onClick={() => setActiveTab('hacker')}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md transition-all text-[11px] uppercase tracking-wider font-bold whitespace-nowrap ${
-                  activeTab === 'hacker' 
-                    ? 'bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-sm' 
-                    : 'text-slate-500 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300'
-                }`}
+            <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+              {/* Tab Switcher inside Header */}
+              <div className="flex p-0.5 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg overflow-hidden shadow-inner flex-1 sm:flex-none">
+                <button
+                  onClick={() => setActiveTab('hacker')}
+                  className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md transition-all text-[11px] uppercase tracking-wider font-bold whitespace-nowrap ${
+                    activeTab === 'hacker' 
+                      ? 'bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-sm' 
+                      : 'text-slate-500 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300'
+                  }`}
+                >
+                  <Terminal className="w-3.5 h-3.5" />
+                  Hacker
+                </button>
+                <button
+                  onClick={() => setActiveTab('weather')}
+                  className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md transition-all text-[11px] uppercase tracking-wider font-bold whitespace-nowrap ${
+                    activeTab === 'weather' 
+                      ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm' 
+                      : 'text-slate-500 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300'
+                  }`}
+                >
+                  <CloudSun className="w-3.5 h-3.5" />
+                  Weather
+                </button>
+              </div>
+              
+              {/* Theme Switcher */}
+              <button 
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="p-2 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors shadow-sm shrink-0"
+                title="Toggle Light/Dark Interface"
               >
-                <Terminal className="w-3.5 h-3.5" />
-                Hacker
-              </button>
-              <button
-                onClick={() => setActiveTab('weather')}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md transition-all text-[11px] uppercase tracking-wider font-bold whitespace-nowrap ${
-                  activeTab === 'weather' 
-                    ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm' 
-                    : 'text-slate-500 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300'
-                }`}
-              >
-                <CloudSun className="w-3.5 h-3.5" />
-                Weather
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
             </div>
-            
-            {/* Theme Switcher */}
-            <button 
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors shadow-sm shrink-0"
-              title="Toggle Light/Dark Interface"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
           </div>
         </header>
 
-        {/* Main Workspace (Fills remaining height on desktop) */}
-        <main className="flex-1 flex flex-col lg:flex-row gap-6 p-4 lg:p-6 min-h-0 relative z-10 w-full max-w-[1920px] mx-auto">
+        {/* Main Workspace (Beautifully spaced floating UI) */}
+        <main className="flex-1 w-full max-w-[1400px] mx-auto py-8 px-4 sm:px-6 lg:py-12 lg:px-8 flex flex-col lg:flex-row gap-8 relative z-10 items-start">
           
-          {/* Left Column: Config (Fixed width on desktop, scrolls independently if needed) */}
-          <aside className="w-full lg:w-[360px] xl:w-[420px] flex flex-col shrink-0 lg:h-full lg:overflow-y-auto lg:pr-2 scrollbar-hide">
-            <div className="p-6 bg-white/60 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 rounded-2xl backdrop-blur-md shadow-sm flex flex-col gap-8 h-full">
+          {/* Left Column: Config */}
+          <aside className="w-full lg:w-[380px] xl:w-[420px] flex flex-col shrink-0">
+            <div className="p-6 md:p-8 bg-white/80 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-3xl backdrop-blur-xl shadow-sm flex flex-col gap-8 min-h-[500px]">
               
-              <div>
+              <div className="flex-1">
                 <h3 className="text-xs uppercase font-mono tracking-widest text-slate-800 dark:text-white font-bold flex items-center gap-2 mb-6">
                    <ShieldAlert className="w-4 h-4 text-emerald-500" /> Options
                 </h3>
@@ -252,14 +254,14 @@ export default function App() {
           </aside>
 
           {/* Right Column: Preview (Top) & Output Codes (Bottom) */}
-          <section className="flex-1 flex flex-col gap-6 min-w-0 h-full">
+          <section className="flex-1 flex flex-col gap-6 w-full min-w-0">
             
-            {/* Top: Massive Preview Area (flex-1 to grow) */}
-            <div className="flex-[3] bg-white/60 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 rounded-2xl backdrop-blur-md shadow-sm dark:shadow-none flex flex-col overflow-hidden relative min-h-[250px]">
+            {/* Top: Massive Preview Area with Natural Aspect */}
+            <div className="w-full bg-white/80 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-3xl backdrop-blur-xl shadow-sm flex flex-col overflow-hidden relative min-h-[300px] lg:min-h-[400px]">
               <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10 pointer-events-none px-4">
-                 <h2 className="text-[10px] uppercase font-mono tracking-widest text-slate-500 dark:text-zinc-400 bg-white/50 dark:bg-zinc-900/50 px-3 py-1 rounded-full backdrop-blur-sm border border-slate-200/50 dark:border-zinc-800/50">Live Adaptive Scaling</h2>
+                 <h2 className="text-[10px] uppercase font-mono tracking-widest text-slate-500 dark:text-zinc-500 bg-white/60 dark:bg-zinc-900/60 px-3 py-1 rounded-full backdrop-blur-md border border-slate-200/50 dark:border-zinc-800/50 shadow-sm">Live Adaptive Scaling</h2>
               </div>
-              <div className="flex-1 relative flex items-center justify-center p-8 overflow-hidden bg-slate-100 dark:bg-black/30">
+              <div className="flex-1 relative flex items-center justify-center p-8 lg:p-16 overflow-hidden bg-slate-100/50 dark:bg-black/20">
                  {/* Decorative glow */}
                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />
                  
@@ -267,20 +269,20 @@ export default function App() {
                     <img 
                       src={getActiveUrl()} 
                       alt="Preview Signature" 
-                      className="w-full h-auto max-h-[60vh] object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300"
+                      className="w-full h-auto object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)] transition-all duration-300"
                       key={activeTab + city + sigTheme}
                     />
                  </div>
               </div>
             </div>
 
-            {/* Bottom: Fast Copy Codes (flex-none) */}
-            <div className="flex-none grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+            {/* Bottom: Fast Copy Codes in a beautiful grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
               
               {/* BBCode */}
-              <div className="bg-white/60 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 rounded-2xl backdrop-blur-md p-5 flex flex-col gap-4 shadow-sm dark:shadow-none">
+              <div className="bg-white/80 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-3xl backdrop-blur-xl p-6 flex flex-col gap-4 shadow-sm">
                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono tracking-widest font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-950 px-2.5 py-1 rounded uppercase border border-slate-200 dark:border-zinc-800">BBCode (Forums)</span>
+                    <span className="text-[10px] font-mono tracking-widest font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-950 px-3 py-1.5 rounded-lg uppercase border border-slate-200 dark:border-zinc-800/80">BBCode (Forums)</span>
                     <button 
                       onClick={() => copyToClipboard(bbCode(getActiveUrl()), 'bbcode')}
                       className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors"
@@ -289,15 +291,15 @@ export default function App() {
                       {copied === 'bbcode' ? 'Copied' : 'Copy'}
                     </button>
                   </div>
-                  <div className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-3 flex items-center shadow-inner overflow-x-auto relative">
+                  <div className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center shadow-inner overflow-x-auto relative mt-auto">
                     <code className="font-mono text-xs text-slate-600 dark:text-zinc-400 whitespace-nowrap pl-1 pr-4 w-full select-all">{bbCode(getActiveUrl())}</code>
                   </div>
               </div>
 
               {/* HTML */}
-              <div className="bg-white/60 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 rounded-2xl backdrop-blur-md p-5 flex flex-col gap-4 shadow-sm dark:shadow-none">
+              <div className="bg-white/80 dark:bg-zinc-900/80 border border-slate-200 dark:border-zinc-800 rounded-3xl backdrop-blur-xl p-6 flex flex-col gap-4 shadow-sm">
                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono tracking-widest font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-950 px-2.5 py-1 rounded uppercase border border-slate-200 dark:border-zinc-800">HTML (Websites)</span>
+                    <span className="text-[10px] font-mono tracking-widest font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-950 px-3 py-1.5 rounded-lg uppercase border border-slate-200 dark:border-zinc-800/80">HTML (Websites)</span>
                     <div className="flex items-center gap-4">
                       <a href={getActiveUrl()} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-slate-500 hover:text-blue-500 transition-colors">
                         Test Link <ExternalLink className="w-3 h-3" />
@@ -311,7 +313,7 @@ export default function App() {
                       </button>
                     </div>
                   </div>
-                  <div className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-3 flex items-center shadow-inner overflow-x-auto relative">
+                  <div className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-2xl p-4 flex items-center shadow-inner overflow-x-auto relative mt-auto">
                     <code className="font-mono text-xs text-slate-600 dark:text-zinc-400 whitespace-nowrap pl-1 pr-4 w-full select-all">{htmlCode(getActiveUrl())}</code>
                   </div>
               </div>
