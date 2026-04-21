@@ -1,15 +1,59 @@
 import { useState, useEffect } from 'react';
-import { Terminal, CloudSun, Copy, Check, ExternalLink, ShieldAlert, Zap, Globe } from 'lucide-react';
+import { Terminal, CloudSun, Copy, Check, ExternalLink, ShieldAlert, Zap, Globe, Sun, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'hacker' | 'weather'>('hacker');
   const [city, setCity] = useState('Bangkok');
-  const [copied, setCopied] = useState<string | null>(null);
   
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+
+  // Detect user's system preference on mount
+  useEffect(() => {
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      setTheme('light');
+    }
+  }, []);
+  
+  const [sigTheme, setSigTheme] = useState('ocean');
+  // Removed scale and debouncedScale
+
+  const [copied, setCopied] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<Array<{name: string, admin1?: string, country?: string}>>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchInput, setSearchInput] = useState('Bangkok');
+
+  // Fetch Autocomplete Suggestions
+  useEffect(() => {
+    if (searchInput.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    
+    // Only fetch if they are actually typing, not just selected
+    if (searchInput === city) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchInput)}&count=5&language=en&format=json`);
+        const data = await res.json();
+        if (data.results) {
+          setSuggestions(data.results);
+          setShowSuggestions(true);
+        } else {
+          setSuggestions([]);
+        }
+      } catch (err) {
+        console.error("Geocoding failed", err);
+      }
+    }, 400); // 400ms debounce for typing
+
+    return () => clearTimeout(timer);
+  }, [searchInput, city]);
+
   // We use relative paths for internal previews to avoid URL resolution issues in dev/preview
-  const previewHackerUrl = `/api/sig/hacker`;
-  const previewWeatherUrl = `/api/sig/weather?city=${encodeURIComponent(city)}`;
+  const previewHackerUrl = `/api/sig/hacker?theme=${sigTheme}`;
+  const previewWeatherUrl = `/api/sig/weather?city=${encodeURIComponent(city)}&theme=${sigTheme}`;
   
   // For copied code and direct links, we need the full URL
   const getFullUrl = (path: string) => {
@@ -20,6 +64,12 @@ export default function App() {
 
   const fullHackerUrl = getFullUrl(previewHackerUrl);
   const fullWeatherUrl = getFullUrl(previewWeatherUrl);
+  
+  const getActiveUrl = () => {
+    if (activeTab === 'hacker') return fullHackerUrl;
+    return fullWeatherUrl;
+  };
+  const siteLink = getFullUrl('');
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -27,188 +77,250 @@ export default function App() {
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const bbCode = (url: string) => `[img]${url}[/img]`;
-  const htmlCode = (url: string) => `<img src="${url}" alt="Dynamic Sig" />`;
+  // Wrapped with links back to the website
+  const bbCode = (url: string) => `[url=${siteLink}][img]${url}[/img][/url]`;
+  const htmlCode = (url: string) => `<a href="${siteLink}" target="_blank"><img src="${url}" alt="Dynamic Sig" /></a>`;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-zinc-100 font-sans selection:bg-emerald-500/30">
-      {/* Background Decor */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-20">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full" />
-      </div>
+    <div className={theme === 'dark' ? 'dark' : ''}>
+      <div className="min-h-[100dvh] lg:h-[100dvh] w-full flex flex-col bg-slate-50 dark:bg-[#0a0a0c] text-slate-900 dark:text-zinc-100 font-sans selection:bg-emerald-500/30 transition-colors duration-300 overflow-y-auto lg:overflow-hidden relative">
+        
+        {/* Background Decor */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-20 z-0">
+          <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full" />
+          <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full" />
+        </div>
 
-      <main className="relative z-10 max-w-4xl mx-auto px-6 py-12">
-        {/* Header */}
-        <header className="mb-12 space-y-4">
-          <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full w-fit">
-            <Zap className="w-3 h-3 text-emerald-400" />
-            <span className="text-[10px] uppercase font-mono tracking-widest text-emerald-400">V1.0.0 Stable</span>
+        {/* Compact Navbar (Always at top) */}
+        <header className="flex-none p-4 lg:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-zinc-800/50 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-md z-20 shadow-sm">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Forum <span className="text-emerald-500 dark:text-emerald-400 font-mono italic">Sig</span>Maker
+              </h1>
+              <div className="hidden sm:flex items-center px-2 py-0.5 bg-emerald-100 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-full">
+                <span className="text-[9px] uppercase font-mono tracking-widest text-emerald-600 dark:text-emerald-400">V1.0</span>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">Server-side dynamically generated signatures for strict forums.</p>
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-white">
-            Forum <span className="text-emerald-400 font-mono italic">Sig</span>Maker
-          </h1>
-          <p className="text-zinc-400 max-w-xl text-lg leading-relaxed">
-            Create dynamic signatures that work on strict forums. No scripts allowed? 
-            No problem. We use server-side generated SVG images.
-          </p>
+
+          <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
+            {/* Tab Switcher inside Header */}
+            <div className="flex p-0.5 bg-slate-100 dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg overflow-hidden shadow-inner flex-1 sm:flex-none">
+              <button
+                onClick={() => setActiveTab('hacker')}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md transition-all text-[11px] uppercase tracking-wider font-bold whitespace-nowrap ${
+                  activeTab === 'hacker' 
+                    ? 'bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-sm' 
+                    : 'text-slate-500 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300'
+                }`}
+              >
+                <Terminal className="w-3.5 h-3.5" />
+                Hacker
+              </button>
+              <button
+                onClick={() => setActiveTab('weather')}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-md transition-all text-[11px] uppercase tracking-wider font-bold whitespace-nowrap ${
+                  activeTab === 'weather' 
+                    ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-sm' 
+                    : 'text-slate-500 dark:text-zinc-500 hover:text-slate-700 dark:hover:text-zinc-300'
+                }`}
+              >
+                <CloudSun className="w-3.5 h-3.5" />
+                Weather
+              </button>
+            </div>
+            
+            {/* Theme Switcher */}
+            <button 
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2 rounded-lg bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors shadow-sm shrink-0"
+              title="Toggle Light/Dark Interface"
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+          </div>
         </header>
 
-        {/* Tab Switcher */}
-        <div className="flex gap-1 p-1 bg-zinc-900 border border-zinc-800 rounded-xl mb-8 w-fit">
-          <button
-            onClick={() => setActiveTab('hacker')}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-lg transition-all text-sm font-medium ${
-              activeTab === 'hacker' 
-                ? 'bg-zinc-800 text-emerald-400 shadow-xl' 
-                : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            <Terminal className="w-4 h-4" />
-            Hacker Mode
-          </button>
-          <button
-            onClick={() => setActiveTab('weather')}
-            className={`flex items-center gap-2 px-6 py-2.5 rounded-lg transition-all text-sm font-medium ${
-              activeTab === 'weather' 
-                ? 'bg-zinc-800 text-blue-400 shadow-xl' 
-                : 'text-zinc-500 hover:text-zinc-300'
-            }`}
-          >
-            <CloudSun className="w-4 h-4" />
-            Weather Mode
-          </button>
-        </div>
-
-        {/* Main Content Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* Main Workspace (Fills remaining height on desktop) */}
+        <main className="flex-1 flex flex-col lg:flex-row gap-6 p-4 lg:p-6 min-h-0 relative z-10 w-full max-w-[1920px] mx-auto">
           
-          {/* Left Side: Preview */}
-          <div className="space-y-6">
-            <div className="p-6 bg-zinc-900/50 border border-zinc-800 rounded-2xl backdrop-blur-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xs uppercase font-mono tracking-widest text-zinc-500">Live Preview</h2>
-                <div className="flex gap-1.5 font-mono text-[9px] text-zinc-600 italic">
-                  <span>450x80px SVG</span>
-                </div>
-              </div>
+          {/* Left Column: Config (Fixed width on desktop, scrolls independently if needed) */}
+          <aside className="w-full lg:w-[360px] xl:w-[420px] flex flex-col shrink-0 lg:h-full lg:overflow-y-auto lg:pr-2 scrollbar-hide">
+            <div className="p-6 bg-white/60 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 rounded-2xl backdrop-blur-md shadow-sm flex flex-col gap-8 h-full">
               
-              <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 to-blue-500/20 rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                <div className="relative overflow-hidden rounded-lg bg-black/40 p-4 border border-white/5 min-h-[114px] flex items-center justify-center">
-                   <img 
-                    src={activeTab === 'hacker' ? fullHackerUrl : fullWeatherUrl} 
-                    alt="Preview" 
-                    className="max-w-full drop-shadow-[0_0_15px_rgba(0,0,0,0.5)]"
-                    key={activeTab + (activeTab === 'weather' ? city : '')}
-                  />
-                </div>
-              </div>
+              <div>
+                <h3 className="text-xs uppercase font-mono tracking-widest text-slate-800 dark:text-white font-bold flex items-center gap-2 mb-6">
+                   <ShieldAlert className="w-4 h-4 text-emerald-500" /> Options
+                </h3>
 
-              {activeTab === 'weather' && (
-                <div className="mt-6 space-y-2">
-                  <label className="text-[10px] uppercase font-bold text-zinc-500 px-1">Location Select</label>
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
+                {activeTab === 'weather' && (
+                  <div className="space-y-3 relative mb-6">
+                    <label className="text-[10px] uppercase font-bold text-slate-500 dark:text-zinc-400 tracking-widest">Location Select</label>
+                    <div className="relative">
+                      <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                       <input 
-                        type="text" 
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        placeholder="Enter City Name..."
-                        className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                        type="text"
+                        value={searchInput}
+                        onChange={(e) => {
+                          setSearchInput(e.target.value);
+                          setShowSuggestions(true);
+                        }}
+                        onFocus={() => setShowSuggestions(true)}
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                             setCity(e.currentTarget.value);
+                             setShowSuggestions(false);
+                          }
+                        }}
+                        placeholder="Search for a city..."
+                        className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm focus:outline-none focus:border-blue-500 transition-colors shadow-inner"
                       />
+                      <AnimatePresence>
+                        {showSuggestions && suggestions.length > 0 && (
+                          <motion.div 
+                            initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
+                            className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-50 text-sm"
+                          >
+                            {suggestions.map((s, idx) => (
+                              <button
+                                key={idx}
+                                className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-zinc-800 flex flex-col transition-colors border-b border-slate-100 dark:border-zinc-800/50 last:border-0"
+                                onClick={() => {
+                                  setSearchInput(s.name);
+                                  setCity(s.name);
+                                  setShowSuggestions(false);
+                                }}
+                              >
+                                <span className="text-slate-800 dark:text-zinc-200 font-medium">{s.name}</span>
+                                <span className="text-[10px] text-slate-500">{[s.admin1, s.country].filter(Boolean).join(', ')}</span>
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {activeTab === 'hacker' && (
-                <div className="mt-6 p-3 bg-emerald-500/5 border border-emerald-500/10 rounded-lg flex gap-3 italic">
-                  <ShieldAlert className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <p className="text-[11px] text-emerald-500/80 leading-snug">
-                    This signature dynamically generates a personalized greeting for each visitor. 
-                    It shows their IP, Location, and ISP info in real-time.
-                  </p>
+                {activeTab === 'hacker' && (
+                  <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex flex-col gap-2 mb-6">
+                    <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-mono text-xs font-bold uppercase tracking-wider">
+                      <Zap className="w-3.5 h-3.5" /> Auto-Detection Active
+                    </div>
+                    <p className="text-[11px] text-slate-700 dark:text-zinc-400 leading-relaxed">
+                      Dynamically extracts visitor's IP, geographic location, and ISP automatically on load. No configuration needed.
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-3 pt-6 border-t border-slate-200 dark:border-zinc-800/50">
+                  <label className="text-[10px] uppercase font-bold text-slate-500 dark:text-zinc-400 tracking-widest">Image Theme</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { id: 'dark', name: 'Dark', colorClass: 'bg-[#09090b]' },
+                      { id: 'ocean', name: 'Ocean', colorClass: 'bg-[#0ea5e9]' },
+                      { id: 'emerald', name: 'Emerald', colorClass: 'bg-[#10b981]' },
+                      { id: 'cyberpunk', name: 'Cyberpunk', colorClass: 'bg-[#ec4899]' }
+                    ].map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => setSigTheme(t.id)}
+                        className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                          sigTheme === t.id 
+                            ? 'bg-slate-200 dark:bg-zinc-700 text-slate-900 dark:text-white shadow-sm ring-1 ring-slate-300 dark:ring-zinc-500' 
+                            : 'bg-slate-50 dark:bg-zinc-950 text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-zinc-800 hover:bg-slate-100 dark:hover:bg-zinc-800/80 shadow-inner'
+                        }`}
+                      >
+                        <span className={`w-3 h-3 rounded-full shadow-sm border border-black/10 ${t.colorClass}`} />
+                        {t.name}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              )}
+              </div>
+
+               <div className="mt-auto pt-8 flex items-center justify-between text-[10px] font-mono uppercase tracking-widest border-t border-slate-200 dark:border-zinc-800/50">
+                  <div className="flex items-center gap-2 text-slate-500 dark:text-zinc-500">
+                     <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                     Service Health: Optimal
+                  </div>
+                </div>
             </div>
-          </div>
+          </aside>
 
-          {/* Right Side: Code Output */}
-          <div className="space-y-6">
-            <div className="p-1 px-1.5 space-y-6">
+          {/* Right Column: Preview (Top) & Output Codes (Bottom) */}
+          <section className="flex-1 flex flex-col gap-6 min-w-0 h-full">
+            
+            {/* Top: Massive Preview Area (flex-1 to grow) */}
+            <div className="flex-[3] bg-white/60 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 rounded-2xl backdrop-blur-md shadow-sm dark:shadow-none flex flex-col overflow-hidden relative min-h-[250px]">
+              <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10 pointer-events-none px-4">
+                 <h2 className="text-[10px] uppercase font-mono tracking-widest text-slate-500 dark:text-zinc-400 bg-white/50 dark:bg-zinc-900/50 px-3 py-1 rounded-full backdrop-blur-sm border border-slate-200/50 dark:border-zinc-800/50">Live Adaptive Scaling</h2>
+              </div>
+              <div className="flex-1 relative flex items-center justify-center p-8 overflow-hidden bg-slate-100 dark:bg-black/30">
+                 {/* Decorative glow */}
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />
+                 
+                 <div className="relative w-full max-w-4xl flex justify-center items-center">
+                    <img 
+                      src={getActiveUrl()} 
+                      alt="Preview Signature" 
+                      className="w-full h-auto max-h-[60vh] object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)] transition-all duration-300"
+                      key={activeTab + city + sigTheme}
+                    />
+                 </div>
+              </div>
+            </div>
+
+            {/* Bottom: Fast Copy Codes (flex-none) */}
+            <div className="flex-none grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
               
-              {/* BBCode Section */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono tracking-wider font-bold text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded uppercase">BBCode (Forums)</span>
-                  <button 
-                    onClick={() => copyToClipboard(bbCode(activeTab === 'hacker' ? fullHackerUrl : fullWeatherUrl), 'bbcode')}
-                    className="flex items-center gap-1.5 text-[11px] text-zinc-400 hover:text-white transition-colors"
-                  >
-                    {copied === 'bbcode' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                    {copied === 'bbcode' ? 'Copied!' : 'Copy Code'}
-                  </button>
-                </div>
-                <div className="p-3 bg-black/50 border border-zinc-800 rounded-lg font-mono text-xs break-all text-zinc-300 leading-relaxed group relative">
-                  {bbCode(activeTab === 'hacker' ? fullHackerUrl : fullWeatherUrl)}
-                </div>
+              {/* BBCode */}
+              <div className="bg-white/60 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 rounded-2xl backdrop-blur-md p-5 flex flex-col gap-4 shadow-sm dark:shadow-none">
+                 <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono tracking-widest font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-950 px-2.5 py-1 rounded uppercase border border-slate-200 dark:border-zinc-800">BBCode (Forums)</span>
+                    <button 
+                      onClick={() => copyToClipboard(bbCode(getActiveUrl()), 'bbcode')}
+                      className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    >
+                      {copied === 'bbcode' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                      {copied === 'bbcode' ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                  <div className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-3 flex items-center shadow-inner overflow-x-auto relative">
+                    <code className="font-mono text-xs text-slate-600 dark:text-zinc-400 whitespace-nowrap pl-1 pr-4 w-full select-all">{bbCode(getActiveUrl())}</code>
+                  </div>
               </div>
 
-              {/* HTML Section */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono tracking-wider font-bold text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded uppercase">HTML Code</span>
-                  <button 
-                    onClick={() => copyToClipboard(htmlCode(activeTab === 'hacker' ? fullHackerUrl : fullWeatherUrl), 'html')}
-                    className="flex items-center gap-1.5 text-[11px] text-zinc-400 hover:text-white transition-colors"
-                  >
-                    {copied === 'html' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                    {copied === 'html' ? 'Copied!' : 'Copy Code'}
-                  </button>
-                </div>
-                <div className="p-3 bg-black/50 border border-zinc-800 rounded-lg font-mono text-xs break-all text-zinc-300 leading-relaxed">
-                  {htmlCode(activeTab === 'hacker' ? fullHackerUrl : fullWeatherUrl)}
-                </div>
-              </div>
-
-              {/* Direct Info */}
-              <div className="pt-4 border-t border-zinc-800 flex items-center justify-between text-[11px]">
-                <div className="flex items-center gap-2 text-zinc-500">
-                   <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                   Server Online
-                </div>
-                <a 
-                  href={activeTab === 'hacker' ? fullHackerUrl : fullWeatherUrl} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="text-zinc-500 hover:text-emerald-400 flex items-center gap-1 transition-colors"
-                >
-                  Direct Link <ExternalLink className="w-3 h-3" />
-                </a>
+              {/* HTML */}
+              <div className="bg-white/60 dark:bg-zinc-900/60 border border-slate-200 dark:border-zinc-800 rounded-2xl backdrop-blur-md p-5 flex flex-col gap-4 shadow-sm dark:shadow-none">
+                 <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono tracking-widest font-bold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-950 px-2.5 py-1 rounded uppercase border border-slate-200 dark:border-zinc-800">HTML (Websites)</span>
+                    <div className="flex items-center gap-4">
+                      <a href={getActiveUrl()} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-slate-500 hover:text-blue-500 transition-colors">
+                        Test Link <ExternalLink className="w-3 h-3" />
+                      </a>
+                      <button 
+                        onClick={() => copyToClipboard(htmlCode(getActiveUrl()), 'html')}
+                        className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                      >
+                        {copied === 'html' ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3" />}
+                        {copied === 'html' ? 'Copied' : 'Copy'}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="w-full bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-xl p-3 flex items-center shadow-inner overflow-x-auto relative">
+                    <code className="font-mono text-xs text-slate-600 dark:text-zinc-400 whitespace-nowrap pl-1 pr-4 w-full select-all">{htmlCode(getActiveUrl())}</code>
+                  </div>
               </div>
 
             </div>
-          </div>
+          </section>
 
-        </div>
-
-        {/* Footer Info */}
-        <footer className="mt-20 pt-8 border-t border-zinc-800/50 flex flex-col items-center text-center space-y-4">
-          <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl max-w-sm">
-            <h3 className="text-xs font-bold text-white mb-2 italic">Why SVG Images?</h3>
-            <p className="text-[11px] text-zinc-500 leading-relaxed">
-              Standard GIF or PNG images are static. SVG rendered by our Express server 
-              allows real-time data injection. Because it's an image file format, 
-              forums that block scripts still allow them to load.
-            </p>
-          </div>
-          <p className="text-[10px] text-zinc-600 font-mono">
-            &copy; {new Date().getFullYear()} SIGMAKER DYNAMIC SYSTEMS // BY PONGPAT
-          </p>
-        </footer>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

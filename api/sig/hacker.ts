@@ -1,61 +1,84 @@
 import axios from "axios";
+import http from "http";
+import https from "https";
+
+const httpAgent = new http.Agent({ keepAlive: true });
+const httpsAgent = new https.Agent({ keepAlive: true });
 
 export default async function handler(req: any, res: any) {
   try {
+    // Parameters
+    const theme = (req.query.theme as string) || 'dark';
+    const width = 450;
+    const height = 80;
+
+    // Provide color palettes
+    const themes: Record<string, any> = {
+      dark: { bg: '#09090b', terminalBar: '#18181b', stroke: '#27272a', textMain: '#10b981', textDim: '#a1a1aa', textHighlight: '#34d399', sysText: '#18181b' },
+      ocean: { bg: '#0f172a', terminalBar: '#1e293b', stroke: '#334155', textMain: '#38bdf8', textDim: '#94a3b8', textHighlight: '#7dd3fc', sysText: '#1e293b' },
+      emerald: { bg: '#022c22', terminalBar: '#064e3b', stroke: '#065f46', textMain: '#34d399', textDim: '#6ee7b7', textHighlight: '#a7f3d0', sysText: '#064e3b' },
+      cyberpunk: { bg: '#2e1065', terminalBar: '#4c1d95', stroke: '#5b21b6', textMain: '#f472b6', textDim: '#d8b4fe', textHighlight: '#f9a8d4', sysText: '#4c1d95' }
+    };
+    const t = themes[theme] || themes.dark;
+
     // Get IP (handling proxies)
     const ip = (req.headers["x-forwarded-for"] as string || req.socket?.remoteAddress || "127.0.0.1").split(",")[0];
     
     // Fetch Geo info (Free API, rate limited, handle gracefully)
-    let geoData = { status: 'fail', country: 'Unknown', isp: 'Unknown', city: 'Unknown' };
+    let geoData = { status: 'fail', country: 'Unknown', isp: 'Unknown', city: 'Classified' };
     try {
-      const geoRes = await axios.get(`http://ip-api.com/json/${ip}?fields=status,message,country,city,isp,query`, { timeout: 3000 });
+      const geoRes = await axios.get(`http://ip-api.com/json/${ip}?fields=status,message,country,city,isp,query`, { 
+        timeout: 3000,
+        httpAgent,
+        httpsAgent
+      });
       if (geoRes.data && geoRes.data.status === 'success') {
         geoData = geoRes.data;
+      } else if (geoRes.data && geoRes.data.message && geoRes.data.message.includes('limit')) {
+        geoData.city = "[RATE_LIMITED]";
+        geoData.country = "[NETWORK]";
+        geoData.isp = "[ANONYMOUS_ISP]";
       }
     } catch (err: any) {
       console.error("Geo lookup failed:", err.message || err);
+      // Give a cool hacker fallback instead of breaking the image
+      geoData.city = "[ENCRYPTED]";
+      geoData.country = "[SECURE_NODE]";
+      geoData.isp = "PROXY_SERVER";
     }
 
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
     // Construct SVG (Hacker Style)
     const svg = `
-      <svg width="450" height="80" viewBox="0 0 450 80" xmlns="http://www.w3.org/2000/svg">
-        <rect width="450" height="80" fill="#0c0d0e" rx="4" />
-        <rect width="448" height="78" x="1" y="1" fill="none" stroke="#2a2d30" stroke-width="1" rx="4" />
-        <defs>
-          <filter id="hacker-glow">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="1" />
-            <feOffset dx="0" dy="0" />
-            <feMerge>
-              <feMergeNode />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
+      <svg width="${width}" height="${height}" viewBox="0 0 450 80" xmlns="http://www.w3.org/2000/svg">
+        <rect width="450" height="80" fill="${t.bg}" rx="6" />
+        <rect width="446" height="76" x="2" y="2" fill="none" stroke="${t.stroke}" stroke-width="2" rx="4" />
         
-        <text x="15" y="25" font-family="monospace" font-size="12" fill="#00ff00" font-weight="bold" filter="url(#hacker-glow)">
-          [ACCESS_GRANTED] >> TARGET_LOCATED
+        <!-- Terminal Header Bar -->
+        <rect width="448" height="20" x="1" y="1" fill="${t.terminalBar}" rx="4" />
+        <rect width="448" height="10" x="1" y="11" fill="${t.terminalBar}" /> <!-- square bottom corners -->
+        
+        <!-- Terminal Dots -->
+        <circle cx="15" cy="11" r="3.5" fill="#ef4444" />
+        <circle cx="28" cy="11" r="3.5" fill="#facc15" />
+        <circle cx="41" cy="11" r="3.5" fill="#22c55e" />
+        
+        <text x="225" y="14" font-family="'Courier New', Courier, monospace" font-size="10" fill="#71717a" text-anchor="middle" font-weight="bold">root@sigmaker:~</text>
+
+        <text x="15" y="42" font-family="'Courier New', Courier, monospace" font-size="12" fill="${t.textMain}" font-weight="bold">
+          <tspan fill="#71717a">$ </tspan>traceroute <tspan fill="#e4e4e7">${ip}</tspan>
         </text>
+        <text x="15" y="58" font-family="'Courier New', Courier, monospace" font-size="11" fill="${t.textDim}">
+           [>] LOC: <tspan fill="${t.textHighlight}">${geoData.city}, ${geoData.country}</tspan> 
+        </text>
+        <text x="15" y="72" font-family="'Courier New', Courier, monospace" font-size="11" fill="${t.textDim}">
+           [>] ISP: <tspan fill="${t.textHighlight}">${geoData.isp}</tspan>
+        </text>
+
+        <text x="435" y="65" font-family="'Courier New', Courier, monospace" font-size="28" fill="${t.sysText}" stroke="${t.stroke}" stroke-width="1" text-anchor="end" font-weight="900" opacity="0.5">_SYS</text>
         
-        <text x="15" y="45" font-family="monospace" font-size="11" fill="#888">IP: </text>
-        <text x="45" y="45" font-family="monospace" font-size="11" fill="#fff">${ip}</text>
-        
-        <text x="15" y="60" font-family="monospace" font-size="11" fill="#888">LOC: </text>
-        <text x="45" y="60" font-family="monospace" font-size="11" fill="#fff">${geoData.city}, ${geoData.country}</text>
-        
-        <text x="250" y="45" font-family="monospace" font-size="11" fill="#888">ISP: </text>
-        <text x="280" y="45" font-family="monospace" font-size="11" fill="#fff">${geoData.isp.substring(0, 18)}</text>
-        
-        <text x="250" y="60" font-family="monospace" font-size="11" fill="#888">USR: </text>
-        <text x="280" y="60" font-family="monospace" font-size="11" fill="#fff">ANONYMOUS</text>
-        
-        <text x="435" y="70" font-family="monospace" font-size="8" fill="#444" text-anchor="end">${timestamp} UTC</text>
-        
-        <line x1="0" y1="32" x2="450" y2="32" stroke="#222" stroke-width="1" />
-        <circle cx="430" cy="15" r="3" fill="#ff5555" />
-        <circle cx="415" cy="15" r="3" fill="#ffb86c" />
-        <circle cx="400" cy="15" r="3" fill="#50fa7b" />
+        <text x="435" y="72" font-family="'Courier New', Courier, monospace" font-size="9" fill="${t.textDim}" text-anchor="end">UTC: ${timestamp}</text>
       </svg>
     `;
 
