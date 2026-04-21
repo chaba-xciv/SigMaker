@@ -1,0 +1,6 @@
+{
+  "name": "SigMaker - Dynamic Forum Signatures",
+  "description": "Generate dynamic HTML/BBCode signatures for forums. Choose between Hacker-style IP display or live weather info.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
