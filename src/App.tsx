@@ -7,11 +7,19 @@ export default function App() {
   const [city, setCity] = useState('Bangkok');
   const [copied, setCopied] = useState<string | null>(null);
   
-  // Use the env var or derive it from window.location
-  const baseUrl = process.env.VITE_APP_URL || window.location.origin;
+  // We use relative paths for internal previews to avoid URL resolution issues in dev/preview
+  const previewHackerUrl = `/api/sig/hacker`;
+  const previewWeatherUrl = `/api/sig/weather?city=${encodeURIComponent(city)}`;
+  
+  // For copied code and direct links, we need the full URL
+  const getFullUrl = (path: string) => {
+    const rawUrl = process.env.VITE_APP_URL;
+    const base = (rawUrl && !rawUrl.includes('MY_APP_URL')) ? rawUrl : window.location.origin;
+    return `${base.replace(/\/$/, '')}${path}`;
+  };
 
-  const hackerUrl = `${baseUrl}/api/sig/hacker`;
-  const weatherUrl = `${baseUrl}/api/sig/weather?city=${encodeURIComponent(city)}`;
+  const fullHackerUrl = getFullUrl(previewHackerUrl);
+  const fullWeatherUrl = getFullUrl(previewWeatherUrl);
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -89,7 +97,7 @@ export default function App() {
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 to-blue-500/20 rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
                 <div className="relative overflow-hidden rounded-lg bg-black/40 p-4 border border-white/5 min-h-[114px] flex items-center justify-center">
                    <img 
-                    src={activeTab === 'hacker' ? hackerUrl : weatherUrl} 
+                    src={activeTab === 'hacker' ? previewHackerUrl : previewWeatherUrl} 
                     alt="Preview" 
                     className="max-w-full drop-shadow-[0_0_15px_rgba(0,0,0,0.5)]"
                     key={activeTab + (activeTab === 'weather' ? city : '')}
@@ -136,7 +144,7 @@ export default function App() {
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono tracking-wider font-bold text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded uppercase">BBCode (Forums)</span>
                   <button 
-                    onClick={() => copyToClipboard(bbCode(activeTab === 'hacker' ? hackerUrl : weatherUrl), 'bbcode')}
+                    onClick={() => copyToClipboard(bbCode(activeTab === 'hacker' ? fullHackerUrl : fullWeatherUrl), 'bbcode')}
                     className="flex items-center gap-1.5 text-[11px] text-zinc-400 hover:text-white transition-colors"
                   >
                     {copied === 'bbcode' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
@@ -144,7 +152,7 @@ export default function App() {
                   </button>
                 </div>
                 <div className="p-3 bg-black/50 border border-zinc-800 rounded-lg font-mono text-xs break-all text-zinc-300 leading-relaxed group relative">
-                  {bbCode(activeTab === 'hacker' ? hackerUrl : weatherUrl)}
+                  {bbCode(activeTab === 'hacker' ? fullHackerUrl : fullWeatherUrl)}
                 </div>
               </div>
 
@@ -153,7 +161,7 @@ export default function App() {
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-mono tracking-wider font-bold text-zinc-400 bg-zinc-800 px-2 py-0.5 rounded uppercase">HTML Code</span>
                   <button 
-                    onClick={() => copyToClipboard(htmlCode(activeTab === 'hacker' ? hackerUrl : weatherUrl), 'html')}
+                    onClick={() => copyToClipboard(htmlCode(activeTab === 'hacker' ? fullHackerUrl : fullWeatherUrl), 'html')}
                     className="flex items-center gap-1.5 text-[11px] text-zinc-400 hover:text-white transition-colors"
                   >
                     {copied === 'html' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
@@ -161,7 +169,7 @@ export default function App() {
                   </button>
                 </div>
                 <div className="p-3 bg-black/50 border border-zinc-800 rounded-lg font-mono text-xs break-all text-zinc-300 leading-relaxed">
-                  {htmlCode(activeTab === 'hacker' ? hackerUrl : weatherUrl)}
+                  {htmlCode(activeTab === 'hacker' ? fullHackerUrl : fullWeatherUrl)}
                 </div>
               </div>
 
@@ -172,7 +180,7 @@ export default function App() {
                    Server Online
                 </div>
                 <a 
-                  href={activeTab === 'hacker' ? hackerUrl : weatherUrl} 
+                  href={activeTab === 'hacker' ? fullHackerUrl : fullWeatherUrl} 
                   target="_blank" 
                   rel="noreferrer"
                   className="text-zinc-500 hover:text-emerald-400 flex items-center gap-1 transition-colors"
