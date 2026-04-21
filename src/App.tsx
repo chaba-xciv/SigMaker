@@ -97,7 +97,7 @@ export default function App() {
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 to-blue-500/20 rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
                 <div className="relative overflow-hidden rounded-lg bg-black/40 p-4 border border-white/5 min-h-[114px] flex items-center justify-center">
                    <img 
-                    src={activeTab === 'hacker' ? previewHackerUrl : previewWeatherUrl} 
+                    src={activeTab === 'hacker' ? fullHackerUrl : fullWeatherUrl} 
                     alt="Preview" 
                     className="max-w-full drop-shadow-[0_0_15px_rgba(0,0,0,0.5)]"
                     key={activeTab + (activeTab === 'weather' ? city : '')}
