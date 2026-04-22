@@ -9,7 +9,7 @@ export default async function handler(req: any, res: any) {
   try {
     // Parameters
     const theme = (req.query.theme as string) || 'dark';
-    const width = 450;
+    const width = 400;
     const height = 80;
 
     // Provide color palettes
@@ -51,20 +51,20 @@ export default async function handler(req: any, res: any) {
 
     // Construct SVG (Hacker Style)
     const svg = `
-      <svg width="${width}" height="${height}" viewBox="0 0 450 80" xmlns="http://www.w3.org/2000/svg">
-        <rect width="450" height="80" fill="${t.bg}" rx="6" />
-        <rect width="446" height="76" x="2" y="2" fill="none" stroke="${t.stroke}" stroke-width="2" rx="4" />
+      <svg width="${width}" height="${height}" viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="80" fill="${t.bg}" rx="6" />
+        <rect width="396" height="76" x="2" y="2" fill="none" stroke="${t.stroke}" stroke-width="2" rx="4" />
         
         <!-- Terminal Header Bar -->
-        <rect width="448" height="20" x="1" y="1" fill="${t.terminalBar}" rx="4" />
-        <rect width="448" height="10" x="1" y="11" fill="${t.terminalBar}" /> <!-- square bottom corners -->
+        <rect width="398" height="20" x="1" y="1" fill="${t.terminalBar}" rx="4" />
+        <rect width="398" height="10" x="1" y="11" fill="${t.terminalBar}" /> <!-- square bottom corners -->
         
         <!-- Terminal Dots -->
         <circle cx="15" cy="11" r="3.5" fill="#ef4444" />
         <circle cx="28" cy="11" r="3.5" fill="#facc15" />
         <circle cx="41" cy="11" r="3.5" fill="#22c55e" />
         
-        <text x="225" y="14" font-family="'Courier New', Courier, monospace" font-size="10" fill="#71717a" text-anchor="middle" font-weight="bold">root@sigmaker:~</text>
+        <text x="200" y="14" font-family="'Courier New', Courier, monospace" font-size="10" fill="#71717a" text-anchor="middle" font-weight="bold">root@sigmaker:~</text>
 
         <text x="15" y="42" font-family="'Courier New', Courier, monospace" font-size="12" fill="${t.textMain}" font-weight="bold">
           <tspan fill="#71717a">$ </tspan>traceroute <tspan fill="#e4e4e7">${ip}</tspan>
@@ -76,9 +76,9 @@ export default async function handler(req: any, res: any) {
            [>] ISP: <tspan fill="${t.textHighlight}">${geoData.isp}</tspan>
         </text>
 
-        <text x="435" y="65" font-family="'Courier New', Courier, monospace" font-size="28" fill="${t.sysText}" stroke="${t.stroke}" stroke-width="1" text-anchor="end" font-weight="900" opacity="0.5">_SYS</text>
+        <text x="385" y="65" font-family="'Courier New', Courier, monospace" font-size="28" fill="${t.sysText}" stroke="${t.stroke}" stroke-width="1" text-anchor="end" font-weight="900" opacity="0.5">_SYS</text>
         
-        <text x="435" y="72" font-family="'Courier New', Courier, monospace" font-size="9" fill="${t.textDim}" text-anchor="end">UTC: ${timestamp}</text>
+        <text x="385" y="72" font-family="'Courier New', Courier, monospace" font-size="9" fill="${t.textDim}" text-anchor="end">UTC: ${timestamp}</text>
       </svg>
     `;
 
@@ -86,7 +86,7 @@ export default async function handler(req: any, res: any) {
     res.setHeader("Cache-Control", "max-age=0, s-maxage=60, no-cache, no-store, must-revalidate");
     res.send(svg.trim());
   } catch (error) {
-    const errorSvg = `<svg width="450" height="80" xmlns="http://www.w3.org/2000/svg"><rect width="450" height="80" fill="#200" /><text x="50%" y="50%" fill="white" font-family="sans-serif" text-anchor="middle">Error Generating Signature</text></svg>`;
+    const errorSvg = `<svg width="400" height="80" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="80" fill="#200" /><text x="50%" y="50%" fill="white" font-family="sans-serif" text-anchor="middle">Error Generating Signature</text></svg>`;
     res.setHeader("Content-Type", "image/svg+xml");
     res.send(errorSvg);
   }

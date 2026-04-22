@@ -9,7 +9,7 @@ export default async function handler(req: any, res: any) {
   try {
     // Parameters
     const theme = (req.query.theme as string) || 'ocean';
-    const width = 450;
+    const width = 400;
     const height = 80;
 
     // Provide color palettes
@@ -84,7 +84,7 @@ export default async function handler(req: any, res: any) {
     const timestamp = new Date().toLocaleTimeString();
 
     const svg = `
-      <svg width="${width}" height="${height}" viewBox="0 0 450 80" xmlns="http://www.w3.org/2000/svg">
+      <svg width="${width}" height="${height}" viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" style="stop-color:${t.bgStart};stop-opacity:1" />
@@ -106,7 +106,7 @@ export default async function handler(req: any, res: any) {
             </feMerge>
           </filter>
         </defs>
-        <rect width="450" height="80" fill="url(#grad)" rx="8" />
+        <rect width="400" height="80" fill="url(#grad)" rx="8" />
         
         <!-- Left Side Accent Line -->
         <rect width="6" height="80" x="0" y="0" fill="url(#accent)" rx="0" opacity="0.9"/>
@@ -114,14 +114,14 @@ export default async function handler(req: any, res: any) {
         <text x="24" y="38" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif" font-size="22" fill="${t.text}" font-weight="700" filter="url(#shadow)">${weather.cityName}</text>
         <text x="24" y="62" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif" font-size="12" fill="#94a3b8" font-weight="500">${weather.countryName} • <tspan fill="${t.primary}">${weather.desc}</tspan></text>
         
-        <text x="430" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif" font-size="36" fill="${t.text}" font-weight="800" text-anchor="end" filter="url(#shadow)">${weather.temp}°C</text>
+        <text x="380" y="52" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif" font-size="36" fill="${t.text}" font-weight="800" text-anchor="end" filter="url(#shadow)">${weather.temp}°C</text>
         
-        <text x="240" y="45" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif" font-size="12" fill="#cbd5e1" font-weight="500">HUMIDITY <tspan fill="${t.text}" font-weight="600">${weather.humidity}%</tspan></text>
-        <text x="240" y="65" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif" font-size="10" fill="#64748b" font-weight="500">SVC: ${serviceStatus} | REF: ${timestamp}</text>
+        <text x="195" y="45" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif" font-size="12" fill="#cbd5e1" font-weight="500">HUMIDITY <tspan fill="${t.text}" font-weight="600">${weather.humidity}%</tspan></text>
+        <text x="195" y="65" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif" font-size="10" fill="#64748b" font-weight="500">SVC: ${serviceStatus} | REF: ${timestamp}</text>
         
         <!-- Minimal Decor -->
-        <circle cx="415" cy="15" r="4" fill="${t.primary}" opacity="0.4" />
-        <circle cx="400" cy="15" r="2.5" fill="${t.primary}" opacity="0.2" />
+        <circle cx="365" cy="15" r="4" fill="${t.primary}" opacity="0.4" />
+        <circle cx="350" cy="15" r="2.5" fill="${t.primary}" opacity="0.2" />
       </svg>
     `;
 
@@ -129,7 +129,7 @@ export default async function handler(req: any, res: any) {
     res.setHeader("Cache-Control", "max-age=0, s-maxage=60, no-cache, no-store, must-revalidate");
     res.send(svg.trim());
   } catch (error) {
-    const errorSvg = `<svg width="450" height="80" xmlns="http://www.w3.org/2000/svg"><rect width="450" height="80" fill="#200" /><text x="50%" y="50%" fill="white" font-family="sans-serif" text-anchor="middle">Weather Signature Error</text></svg>`;
+    const errorSvg = `<svg width="400" height="80" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="80" fill="#200" /><text x="50%" y="50%" fill="white" font-family="sans-serif" text-anchor="middle">Weather Signature Error</text></svg>`;
     res.setHeader("Content-Type", "image/svg+xml");
     res.send(errorSvg);
   }
